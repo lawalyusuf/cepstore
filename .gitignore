@@ -1,5 +1,5 @@
 # --- Secrets & env (NEVER COMMIT) ---
-wp-config.php
+wp-config-old.php
 *.env
 *.env
 .env

@@ -1,13 +1,41 @@
 name: Deploy Cepstore via FTP
+
 on:
   push:
     branches: ["main"]
+
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: SamKirkland/FTP-Deploy-Action@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install envsubst
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext-base
+
+      - name: Prepare deploy folder
+        env:
+          # DB secrets
+          WP_DB_NAME: ${{ secrets.WP_DB_NAME }}
+          WP_DB_USER: ${{ secrets.WP_DB_USER }}
+          WP_DB_PASSWORD: ${{ secrets.WP_DB_PASSWORD }}
+          WP_DB_HOST: ${{ secrets.WP_DB_HOST }}
+        run: |
+          # copy repo to dist, respecting your ignores
+          rsync -a ./ ./dist \
+            --exclude '.git*' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+
+          # render wp-config.php in dist from secrets (without touching your repo file)
+          envsubst '$WP_DB_NAME $WP_DB_USER $WP_DB_PASSWORD $WP_DB_HOST' \
+            < ./wp-config.php > ./dist/wp-config.php
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -15,10 +43,9 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           server-dir: ${{ secrets.FTP_PATH }}
           protocol: ftp
+          local-dir: dist
           exclude: |
             **/.git*
             **/.github/**
-            wp-config.php
-            wp-content/uploads/**
             node_modules/**
-            vendor/**
+          dangerous-clean-slate: false
