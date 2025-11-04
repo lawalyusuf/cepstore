@@ -1,7 +1,7 @@
 # --- Secrets & env (NEVER COMMIT) ---
 wp-config.php
 *.env
-*.env.*
+*.env
 .env
 *.sql
 *.tar
