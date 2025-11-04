@@ -43,7 +43,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           server-dir: ${{ secrets.FTP_PATH }}
           protocol: ftp
-          local-dir: dist
+          local-dir: dist/
           exclude: |
             **/.git*
             **/.github/**

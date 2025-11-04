@@ -7,21 +7,6 @@ wp-config-old.php
 *.tar
 *.zip
 
-# --- Runtime/uploads/cache (don’t version) ---
-wp-content/uploads/
-wp-content/cache/
-wp-content/upgrade/
-wp-content/backups/
-wp-content/advanced-cache.php
-wp-content/object-cache.php
-wp-content/debug.log
-
-# --- Woo/Plugins specific noise ---
-wp-content/plugins/*/vendor/
-wp-content/plugins/*/node_modules/
-wp-content/themes/*/vendor/
-wp-content/themes/*/node_modules/
-
 # --- Build artifacts ---
 dist/
 build/
@@ -29,7 +14,6 @@ coverage/
 *.map
 
 # --- Composer / Node ---
-vendor/
 node_modules/
 package-lock.json
 pnpm-lock.yaml
