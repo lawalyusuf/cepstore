@@ -1,30 +1,42 @@
-# --- Secrets & env (NEVER COMMIT) ---
+# --- Secrets & env  ---
 wp-config-old.php
-*.env
-*.env
 .env
+*.env
 *.sql
 *.tar
 *.zip
+*.bak
 
-# --- Build artifacts ---
+# --- Build / Generated files ---
 dist/
 build/
 coverage/
 *.map
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# --- Composer / Node ---
+# --- Dependencies ---
 node_modules/
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
+vendor/                
 
-# --- OS / IDE ---
+# --- OS / IDE / Local tools ---
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.iml
 
-# --- GitHub/CI (keep workflows; hide internal caches) ---
+# --- WordPress generated / user content ---
+wp-config-old
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/wflogs/
+wp-content/ai1wm-backups/
+
+# --- GitHub / CI ---
 .github/*.log
+# keep workflows but ignore action run outputs if any
+!.github/workflows/

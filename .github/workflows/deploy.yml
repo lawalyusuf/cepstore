@@ -8,32 +8,53 @@ jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
     steps:
+      # Get repo
       - name: Checkout
         uses: actions/checkout@v4
 
+      # For envsubst
       - name: Install envsubst
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext-base
 
+      # Build deploy folder (no server data, render config)
       - name: Prepare deploy folder
         env:
-          # DB secrets
+          # DB
           WP_DB_NAME: ${{ secrets.WP_DB_NAME }}
           WP_DB_USER: ${{ secrets.WP_DB_USER }}
           WP_DB_PASSWORD: ${{ secrets.WP_DB_PASSWORD }}
           WP_DB_HOST: ${{ secrets.WP_DB_HOST }}
+          # Keys & salts
+          WP_AUTH_KEY: ${{ secrets.WP_AUTH_KEY }}
+          WP_SECURE_AUTH_KEY: ${{ secrets.SECURE_AUTH_KEY }}
+          WP_LOGGED_IN_KEY: ${{ secrets.LOGGED_IN_KEY }}
+          WP_NONCE_KEY: ${{ secrets.WP_NONCE_KEY }}
+          WP_AUTH_SALT: ${{ secrets.WP_AUTH_SALT }}
+          WP_SECURE_AUTH_SALT: ${{ secrets.WP_SECURE_AUTH_SALT }}
+          WP_LOGGED_IN_SALT: ${{ secrets.WP_LOGGED_IN_SALT }}
+          WP_NONCE_SALT: ${{ secrets.WP_NONCE_SALT }}
         run: |
-          # copy repo to dist, respecting your ignores
+          # Copy repo → dist; skip local/dev junk + root vendor
           rsync -a ./ ./dist \
             --exclude '.git*' \
             --exclude '.github/' \
+            --exclude '.vscode/' \
+            --exclude '.idea/' \
+            --exclude '.DS_Store' \
             --exclude 'node_modules/' \
+            --exclude '/vendor/' \
+            --exclude 'tests/' \
+            --exclude 'bin/' \
+            --exclude '.env' \
+            --exclude '.env.*'
 
-          # render wp-config.php in dist from secrets (without touching your repo file)
-          envsubst '$WP_DB_NAME $WP_DB_USER $WP_DB_PASSWORD $WP_DB_HOST' \
+          # Render ALL placeholders into dist/wp-config.php
+          envsubst '$WP_DB_NAME $WP_DB_USER $WP_DB_PASSWORD $WP_DB_HOST $WP_AUTH_KEY $WP_SECURE_AUTH_KEY $WP_LOGGED_IN_KEY $WP_NONCE_KEY $WP_AUTH_SALT $WP_SECURE_AUTH_SALT $WP_LOGGED_IN_SALT $WP_NONCE_SALT' \
             < ./wp-config.php > ./dist/wp-config.php
 
+      # Push only what’s needed; never touch uploads/caches
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
@@ -47,5 +68,17 @@ jobs:
           exclude: |
             **/.git*
             **/.github/**
+            **/.vscode/**
+            **/.idea/**
+            **/.DS_Store
             node_modules/**
-          dangerous-clean-slate: false
+            tests/**
+            bin/**
+            .env
+            .env.*
+            vendor/**                 # only root vendor/ exists in dist
+            wp-content/uploads/**     # preserve user media on server
+            wp-content/cache/**
+            wp-content/upgrade/**
+            wp-content/wflogs/**
+          dangerous-clean-slate: false # never wipe server dir
